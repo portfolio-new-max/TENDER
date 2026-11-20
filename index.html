@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Креатив и ИИ — Тутков/Будков</title>
+<meta name="description" content="Портфолио агентства Тутков/Будков: кейсы по отраслям и использование ИИ.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --slide-bg: #0b0b0c;
+    --accent: #ffffff;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* scroll-snap container */
+  .scroller {
+    scroll-snap-type: y proximity;
+  }
+  .deck {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--slide-bg);
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-margin-top: 64px;
+  }
+  .slide img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .slide.has-video img {
+    transition: transform 0.35s ease, filter 0.35s ease;
+  }
+  .slide.has-video:hover img {
+    transform: scale(1.015);
+    filter: brightness(1.05);
+  }
+  .hotspot {
+    position: absolute;
+    border: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+  }
+  .hotspot-video { -webkit-tap-highlight-color: transparent; }
+  .hotspot-link { -webkit-tap-highlight-color: transparent; }
+
+  /* top progress hairline */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    z-index: 60;
+  }
+  .topbar-fill {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    transition: width 0.1s linear;
+  }
+
+  /* sticky chapter nav */
+  .chapternav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 28px;
+    padding: 16px 28px;
+    background: rgba(11,11,12,0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .brand {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0.9;
+    padding-right: 8px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+  .chapter-item {
+    position: relative;
+  }
+  .chapter-link {
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 6px 2px;
+    position: relative;
+    display: inline-block;
+    transition: color 0.2s ease;
+  }
+  .chapter-link::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 100%;
+    bottom: -1px;
+    height: 2px;
+    background: #fff;
+    transition: right 0.25s ease;
+  }
+
+  /* hover dropdown of individual cases within a chapter (desktop/pointer only) */
+  .chapter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* no gap to the menu item above: a real empty strip there would drop :hover
+       mid-transition and make the dropdown vanish while the cursor is still moving */
+    margin-top: 0;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    min-width: 260px;
+    border-radius: 10px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .chapter-dropdown-inner {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(18,18,20,0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  }
+  .chapter-sub-link {
+    color: rgba(255,255,255,0.68);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    padding: 7px 10px;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .chapter-sub-client {
+    color: rgba(255,255,255,0.45);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
+  .chapter-sub-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .chapter-sub-link:hover .chapter-sub-client {
+    color: rgba(255,255,255,0.7);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .chapter-item:hover .chapter-dropdown {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+  .chapter-link:hover { color: rgba(255,255,255,0.85); }
+  .chapter-link.active { color: #fff; }
+  .chapter-link.active::after { right: 0; }
+
+  /* floating slide counter / prev-next */
+  .slidenav {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .slidenav.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .slidenav button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .slidenav button:hover { background: rgba(255,255,255,0.15); }
+  .slidenav button:disabled { opacity: 0.3; cursor: default; }
+  .slidenav button:disabled:hover { background: transparent; }
+  .slide-counter {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.8);
+    min-width: 62px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* inline video playback (replaces the slide image in place) */
+  .slide-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    z-index: 5;
+    background: #000;
+  }
+  .slide-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 6;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .slide-close:hover { background: rgba(0,0,0,0.75); }
+
+  @media (max-width: 700px) {
+    .chapternav { gap: 18px; padding: 12px 16px; }
+    .brand { display: none; }
+  }
+
+  .chapternav { gap: 4px 20px; }
+  .chapter-sub-link { white-space: normal; max-width: 340px; }
+  .chapter-gap { margin-left: 22px; padding-left: 26px; border-left: 1px solid rgba(255,255,255,0.22); }
+  @media (max-width: 700px) { .chapter-gap { margin-left: 0; padding-left: 0; border-left: 0; } }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-fill" id="topbarFill"></div></div>
+
+<nav class="chapternav">
+  <div class="chapter-item">
+      <a href="#p2" class="chapter-link" data-chapter-idx="0">E-GROCERY</a>
+      <div class="chapter-dropdown">
+        <div class="chapter-dropdown-inner">
+          <a href="#p3" class="chapter-sub-link">Купер</a>
+          <a href="#p11" class="chapter-sub-link">Самокат</a>
+          <a href="#p31" class="chapter-sub-link">Яндекс Еда</a>
+          <a href="#p37" class="chapter-sub-link">Vprok.ru</a>
+        </div>
+      </div>
+    </div>
+  <div class="chapter-item">
+      <a href="#p44" class="chapter-link" data-chapter-idx="1">FMCG</a>
+      <div class="chapter-dropdown">
+        <div class="chapter-dropdown-inner">
+          <a href="#p45" class="chapter-sub-link">Мираторг</a>
+          <a href="#p50" class="chapter-sub-link">Valio / Viola</a>
+          <a href="#p54" class="chapter-sub-link">Сыробогатов</a>
+          <a href="#p58" class="chapter-sub-link">Hungry Panda</a>
+        </div>
+      </div>
+    </div>
+  <div class="chapter-item">
+      <a href="#p63" class="chapter-link" data-chapter-idx="2">RETAIL</a>
+      <div class="chapter-dropdown">
+        <div class="chapter-dropdown-inner">
+          <a href="#p64" class="chapter-sub-link">Desport</a>
+        </div>
+      </div>
+    </div>
+  <div class="chapter-item">
+      <a href="#p69" class="chapter-link" data-chapter-idx="3">BANKING/FINTECH</a>
+      <div class="chapter-dropdown">
+        <div class="chapter-dropdown-inner">
+          <a href="#p70" class="chapter-sub-link">Home Credit Bank</a>
+          <a href="#p77" class="chapter-sub-link">РСХБ</a>
+        </div>
+      </div>
+    </div>
+  <div class="chapter-item">
+      <a href="#p81" class="chapter-link" data-chapter-idx="4">E-SERVICES</a>
+      <div class="chapter-dropdown">
+        <div class="chapter-dropdown-inner">
+          <a href="#p82" class="chapter-sub-link">ivi</a>
+          <a href="#p93" class="chapter-sub-link">hh.ru</a>
+        </div>
+      </div>
+    </div>
+  <div class="chapter-item chapter-gap"><a href="#a1" class="chapter-link" data-chapter-idx="5">Использование ИИ</a></div>
+</nav>
+
+<div class="scroller">
+<div class="deck">
+    <section class="slide" id="p1" data-page="p1" data-chapter="-1">
+      <img src="img/p1.jpg" alt="Слайд 1" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p2" data-page="p2" data-chapter="0">
+      <img src="img/p2.jpg" alt="Слайд 2" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p3" data-page="p3" data-chapter="0">
+      <img src="img/p3.jpg" alt="Слайд 3" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p4" data-page="p4" data-chapter="0">
+      <img src="img/p4.jpg" alt="Слайд 4" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p5" data-page="p5" data-chapter="0">
+      <img src="img/p5.jpg" alt="Слайд 5" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p6" data-page="p6" data-chapter="0">
+      <img src="img/p6.jpg" alt="Слайд 6" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1195590271?h=2caf2a0009&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p7" data-page="p7" data-chapter="0">
+      <img src="img/p7.jpg" alt="Слайд 7" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p8" data-page="p8" data-chapter="0">
+      <img src="img/p8.jpg" alt="Слайд 8" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p9" data-page="p9" data-chapter="0">
+      <img src="img/p9.jpg" alt="Слайд 9" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1210472789?h=d336e5d429&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p10" data-page="p10" data-chapter="0">
+      <img src="img/p10.jpg" alt="Слайд 10" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1210225040?h=92e446d9fb&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p11" data-page="p11" data-chapter="0">
+      <img src="img/p11.jpg" alt="Слайд 11" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p12" data-page="p12" data-chapter="0">
+      <img src="img/p12.jpg" alt="Слайд 12" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p13" data-page="p13" data-chapter="0">
+      <img src="img/p13.jpg" alt="Слайд 13" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p14" data-page="p14" data-chapter="0">
+      <img src="img/p14.jpg" alt="Слайд 14" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177631784?h=162ce273b6&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p15" data-page="p15" data-chapter="0">
+      <img src="img/p15.jpg" alt="Слайд 15" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177622906?h=e80b26f461&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p16" data-page="p16" data-chapter="0">
+      <img src="img/p16.jpg" alt="Слайд 16" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177631443?h=1f40218956&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p17" data-page="p17" data-chapter="0">
+      <img src="img/p17.jpg" alt="Слайд 17" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p18" data-page="p18" data-chapter="0">
+      <img src="img/p18.jpg" alt="Слайд 18" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p19" data-page="p19" data-chapter="0">
+      <img src="img/p19.jpg" alt="Слайд 19" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p20" data-page="p20" data-chapter="0">
+      <img src="img/p20.jpg" alt="Слайд 20" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p21" data-page="p21" data-chapter="0">
+      <img src="img/p21.jpg" alt="Слайд 21" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p22" data-page="p22" data-chapter="0">
+      <img src="img/p22.jpg" alt="Слайд 22" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p23" data-page="p23" data-chapter="0">
+      <img src="img/p23.jpg" alt="Слайд 23" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3113%;top:39.7701%;width:11.3773%;height:20.2538%;" data-embed="https://player.vimeo.com/video/1222438184?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p24" data-page="p24" data-chapter="0">
+      <img src="img/p24.jpg" alt="Слайд 24" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3110%;top:39.8587%;width:11.3773%;height:20.2539%;" data-embed="https://player.vimeo.com/video/1222438011?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p25" data-page="p25" data-chapter="0">
+      <img src="img/p25.jpg" alt="Слайд 25" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1228746707?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.3559" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p26" data-page="p26" data-chapter="0">
+      <img src="img/p26.jpg" alt="Слайд 26" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p27" data-page="p27" data-chapter="0">
+      <img src="img/p27.jpg" alt="Слайд 27" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p28" data-page="p28" data-chapter="0">
+      <img src="img/p28.jpg" alt="Слайд 28" loading="lazy" draggable="false">
+      <a class="hotspot hotspot-link" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" href="https://tutkovbudkov.ru/creative/raz-i-radost-blizkim" target="_blank" rel="noopener noreferrer" aria-label="Открыть ссылку"></a>
+    </section>
+    <section class="slide has-video" id="p29" data-page="p29" data-chapter="0">
+      <img src="img/p29.jpg" alt="Слайд 29" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.2067%;top:0.0000%;width:99.5866%;height:100.0000%;" data-embed="https://player.vimeo.com/video/1040382630?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+      <a class="hotspot hotspot-link" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" href="https://tutkovbudkov.ru/creative/raz-i-radost-blizkim" target="_blank" rel="noopener noreferrer" aria-label="Открыть ссылку"></a>
+    </section>
+    <section class="slide" id="p30" data-page="p30" data-chapter="0">
+      <img src="img/p30.jpg" alt="Слайд 30" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p31" data-page="p31" data-chapter="0">
+      <img src="img/p31.jpg" alt="Слайд 31" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p32" data-page="p32" data-chapter="0">
+      <img src="img/p32.jpg" alt="Слайд 32" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p33" data-page="p33" data-chapter="0">
+      <img src="img/p33.jpg" alt="Слайд 33" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p34" data-page="p34" data-chapter="0">
+      <img src="img/p34.jpg" alt="Слайд 34" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/442308892?h=2d946b7198&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p35" data-page="p35" data-chapter="0">
+      <img src="img/p35.jpg" alt="Слайд 35" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p36" data-page="p36" data-chapter="0">
+      <img src="img/p36.jpg" alt="Слайд 36" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p37" data-page="p37" data-chapter="0">
+      <img src="img/p37.jpg" alt="Слайд 37" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p38" data-page="p38" data-chapter="0">
+      <img src="img/p38.jpg" alt="Слайд 38" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p39" data-page="p39" data-chapter="0">
+      <img src="img/p39.jpg" alt="Слайд 39" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p40" data-page="p40" data-chapter="0">
+      <img src="img/p40.jpg" alt="Слайд 40" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/688068809?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p41" data-page="p41" data-chapter="0">
+      <img src="img/p41.jpg" alt="Слайд 41" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/688068966?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p42" data-page="p42" data-chapter="0">
+      <img src="img/p42.jpg" alt="Слайд 42" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p43" data-page="p43" data-chapter="0">
+      <img src="img/p43.jpg" alt="Слайд 43" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p44" data-page="p44" data-chapter="1">
+      <img src="img/p44.jpg" alt="Слайд 44" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p45" data-page="p45" data-chapter="1">
+      <img src="img/p45.jpg" alt="Слайд 45" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p46" data-page="p46" data-chapter="1">
+      <img src="img/p46.jpg" alt="Слайд 46" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p47" data-page="p47" data-chapter="1">
+      <img src="img/p47.jpg" alt="Слайд 47" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p48" data-page="p48" data-chapter="1">
+      <img src="img/p48.jpg" alt="Слайд 48" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177682888?h=35e3134653&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p49" data-page="p49" data-chapter="1">
+      <img src="img/p49.jpg" alt="Слайд 49" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p50" data-page="p50" data-chapter="1">
+      <img src="img/p50.jpg" alt="Слайд 50" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p51" data-page="p51" data-chapter="1">
+      <img src="img/p51.jpg" alt="Слайд 51" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p52" data-page="p52" data-chapter="1">
+      <img src="img/p52.jpg" alt="Слайд 52" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p53" data-page="p53" data-chapter="1">
+      <img src="img/p53.jpg" alt="Слайд 53" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/800542558?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p54" data-page="p54" data-chapter="1">
+      <img src="img/p54.jpg" alt="Слайд 54" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p55" data-page="p55" data-chapter="1">
+      <img src="img/p55.jpg" alt="Слайд 55" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p56" data-page="p56" data-chapter="1">
+      <img src="img/p56.jpg" alt="Слайд 56" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p57" data-page="p57" data-chapter="1">
+      <img src="img/p57.jpg" alt="Слайд 57" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/912594102?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p58" data-page="p58" data-chapter="1">
+      <img src="img/p58.jpg" alt="Слайд 58" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p59" data-page="p59" data-chapter="1">
+      <img src="img/p59.jpg" alt="Слайд 59" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p60" data-page="p60" data-chapter="1">
+      <img src="img/p60.jpg" alt="Слайд 60" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p61" data-page="p61" data-chapter="1">
+      <img src="img/p61.jpg" alt="Слайд 61" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1210232491?h=f5b3334c59&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p62" data-page="p62" data-chapter="1">
+      <img src="img/p62.jpg" alt="Слайд 62" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p63" data-page="p63" data-chapter="2">
+      <img src="img/p63.jpg" alt="Слайд 63" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p64" data-page="p64" data-chapter="2">
+      <img src="img/p64.jpg" alt="Слайд 64" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p65" data-page="p65" data-chapter="2">
+      <img src="img/p65.jpg" alt="Слайд 65" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p66" data-page="p66" data-chapter="2">
+      <img src="img/p66.jpg" alt="Слайд 66" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p67" data-page="p67" data-chapter="2">
+      <img src="img/p67.jpg" alt="Слайд 67" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p68" data-page="p68" data-chapter="2">
+      <img src="img/p68.jpg" alt="Слайд 68" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p69" data-page="p69" data-chapter="3">
+      <img src="img/p69.jpg" alt="Слайд 69" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p70" data-page="p70" data-chapter="3">
+      <img src="img/p70.jpg" alt="Слайд 70" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p71" data-page="p71" data-chapter="3">
+      <img src="img/p71.jpg" alt="Слайд 71" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p72" data-page="p72" data-chapter="3">
+      <img src="img/p72.jpg" alt="Слайд 72" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p73" data-page="p73" data-chapter="3">
+      <img src="img/p73.jpg" alt="Слайд 73" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/690911012?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p74" data-page="p74" data-chapter="3">
+      <img src="img/p74.jpg" alt="Слайд 74" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/690910896?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p75" data-page="p75" data-chapter="3">
+      <img src="img/p75.jpg" alt="Слайд 75" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177706874?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p76" data-page="p76" data-chapter="3">
+      <img src="img/p76.jpg" alt="Слайд 76" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3500%;top:39.8630%;width:11.2992%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1177709189?autoplay=1&title=0&byline=0&portrait=0" aria-label="Смотреть видео"></button>
+      <button class="hotspot hotspot-video" style="left:45.5422%;top:43.9573%;width:8.9156%;height:12.0854%;" data-embed="https://player.vimeo.com/video/1177709189?h=38e3212ea3&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p77" data-page="p77" data-chapter="3">
+      <img src="img/p77.jpg" alt="Слайд 77" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p78" data-page="p78" data-chapter="3">
+      <img src="img/p78.jpg" alt="Слайд 78" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p79" data-page="p79" data-chapter="3">
+      <img src="img/p79.jpg" alt="Слайд 79" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p80" data-page="p80" data-chapter="3">
+      <img src="img/p80.jpg" alt="Слайд 80" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p81" data-page="p81" data-chapter="4">
+      <img src="img/p81.jpg" alt="Слайд 81" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p82" data-page="p82" data-chapter="4">
+      <img src="img/p82.jpg" alt="Слайд 82" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p83" data-page="p83" data-chapter="4">
+      <img src="img/p83.jpg" alt="Слайд 83" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p84" data-page="p84" data-chapter="4">
+      <img src="img/p84.jpg" alt="Слайд 84" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p85" data-page="p85" data-chapter="4">
+      <img src="img/p85.jpg" alt="Слайд 85" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1231334494?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p86" data-page="p86" data-chapter="4">
+      <img src="img/p86.jpg" alt="Слайд 86" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0227%;top:0.0227%;width:99.9547%;height:99.9547%;" data-embed="https://player.vimeo.com/video/1231328630?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p87" data-page="p87" data-chapter="4">
+      <img src="img/p87.jpg" alt="Слайд 87" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/1231329468?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p88" data-page="p88" data-chapter="4">
+      <img src="img/p88.jpg" alt="Слайд 88" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0000%;top:0.0000%;width:100.0000%;height:100.0000%;" data-embed="https://player.vimeo.com/video/1231331875?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p89" data-page="p89" data-chapter="4">
+      <img src="img/p89.jpg" alt="Слайд 89" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.8637%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1231330043?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p90" data-page="p90" data-chapter="4">
+      <img src="img/p90.jpg" alt="Слайд 90" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:0.0152%;top:0.0152%;width:99.9696%;height:99.9696%;" data-embed="https://player.vimeo.com/video/854614726?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p91" data-page="p91" data-chapter="4">
+      <img src="img/p91.jpg" alt="Слайд 91" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p92" data-page="p92" data-chapter="4">
+      <img src="img/p92.jpg" alt="Слайд 92" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p93" data-page="p93" data-chapter="4">
+      <img src="img/p93.jpg" alt="Слайд 93" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p94" data-page="p94" data-chapter="4">
+      <img src="img/p94.jpg" alt="Слайд 94" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p95" data-page="p95" data-chapter="4">
+      <img src="img/p95.jpg" alt="Слайд 95" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="p96" data-page="p96" data-chapter="4">
+      <img src="img/p96.jpg" alt="Слайд 96" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="p97" data-page="p97" data-chapter="4">
+      <img src="img/p97.jpg" alt="Слайд 97" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1108087640?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="p98" data-page="p98" data-chapter="4">
+      <img src="img/p98.jpg" alt="Слайд 98" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1108089574?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="a1" data-page="a1" data-chapter="5">
+      <img src="img/a1.jpg" alt="Слайд 99" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a2" data-page="a2" data-chapter="5">
+      <img src="img/a2.jpg" alt="Слайд 100" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a3" data-page="a3" data-chapter="5">
+      <img src="img/a3.jpg" alt="Слайд 101" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a4" data-page="a4" data-chapter="5">
+      <img src="img/a4.jpg" alt="Слайд 102" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a5" data-page="a5" data-chapter="5">
+      <img src="img/a5.jpg" alt="Слайд 103" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a6" data-page="a6" data-chapter="5">
+      <img src="img/a6.jpg" alt="Слайд 104" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a7" data-page="a7" data-chapter="5">
+      <img src="img/a7.jpg" alt="Слайд 105" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a8" data-page="a8" data-chapter="5">
+      <img src="img/a8.jpg" alt="Слайд 106" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a9" data-page="a9" data-chapter="5">
+      <img src="img/a9.jpg" alt="Слайд 107" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a10" data-page="a10" data-chapter="5">
+      <img src="img/a10.jpg" alt="Слайд 108" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="a11" data-page="a11" data-chapter="5">
+      <img src="img/a11.jpg" alt="Слайд 109" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3110%;top:39.8587%;width:11.3773%;height:20.2539%;" data-embed="https://player.vimeo.com/video/1177682888?h=35e3134653&autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="a12" data-page="a12" data-chapter="5">
+      <img src="img/a12.jpg" alt="Слайд 110" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a13" data-page="a13" data-chapter="5">
+      <img src="img/a13.jpg" alt="Слайд 111" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a14" data-page="a14" data-chapter="5">
+      <img src="img/a14.jpg" alt="Слайд 112" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a15" data-page="a15" data-chapter="5">
+      <img src="img/a15.jpg" alt="Слайд 113" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a16" data-page="a16" data-chapter="5">
+      <img src="img/a16.jpg" alt="Слайд 114" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a17" data-page="a17" data-chapter="5">
+      <img src="img/a17.jpg" alt="Слайд 115" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a18" data-page="a18" data-chapter="5">
+      <img src="img/a18.jpg" alt="Слайд 116" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a19" data-page="a19" data-chapter="5">
+      <img src="img/a19.jpg" alt="Слайд 117" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a20" data-page="a20" data-chapter="5">
+      <img src="img/a20.jpg" alt="Слайд 118" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a21" data-page="a21" data-chapter="5">
+      <img src="img/a21.jpg" alt="Слайд 119" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a22" data-page="a22" data-chapter="5">
+      <img src="img/a22.jpg" alt="Слайд 120" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a23" data-page="a23" data-chapter="5">
+      <img src="img/a23.jpg" alt="Слайд 121" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a24" data-page="a24" data-chapter="5">
+      <img src="img/a24.jpg" alt="Слайд 122" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a25" data-page="a25" data-chapter="5">
+      <img src="img/a25.jpg" alt="Слайд 123" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a26" data-page="a26" data-chapter="5">
+      <img src="img/a26.jpg" alt="Слайд 124" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a27" data-page="a27" data-chapter="5">
+      <img src="img/a27.jpg" alt="Слайд 125" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a28" data-page="a28" data-chapter="5">
+      <img src="img/a28.jpg" alt="Слайд 126" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a29" data-page="a29" data-chapter="5">
+      <img src="img/a29.jpg" alt="Слайд 127" loading="lazy" draggable="false">
+    </section>
+    <section class="slide" id="a30" data-page="a30" data-chapter="5">
+      <img src="img/a30.jpg" alt="Слайд 128" loading="lazy" draggable="false">
+    </section>
+    <section class="slide has-video" id="a31" data-page="a31" data-chapter="5">
+      <img src="img/a31.jpg" alt="Слайд 129" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1228121783?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7927" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="a32" data-page="a32" data-chapter="5">
+      <img src="img/a32.jpg" alt="Слайд 130" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1228121204?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7927" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="a33" data-page="a33" data-chapter="5">
+      <img src="img/a33.jpg" alt="Слайд 131" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1228120559?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7927" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide has-video" id="a34" data-page="a34" data-chapter="5">
+      <img src="img/a34.jpg" alt="Слайд 132" loading="lazy" draggable="false">
+      <button class="hotspot hotspot-video" style="left:44.3504%;top:39.2855%;width:11.2993%;height:20.1801%;" data-embed="https://player.vimeo.com/video/1247999725?autoplay=1&title=0&byline=0&portrait=0" data-aspect="1.7778" aria-label="Смотреть видео"></button>
+    </section>
+    <section class="slide" id="p99" data-page="p99" data-chapter="-1">
+      <img src="img/p99.jpg" alt="Слайд 133" loading="lazy" draggable="false">
+    </section>
+</div>
+</div>
+
+<div class="slidenav" id="slidenav">
+  <button id="prevSlide" aria-label="Предыдущий слайд">&#8249;</button>
+  <span class="slide-counter" id="slideCounter">1 / 133</span>
+  <button id="nextSlide" aria-label="Следующий слайд">&#8250;</button>
+</div>
+
+<script>
+(function() {
+  var N_PAGES = 175;
+  var CHAPTERS = [{"title": "Об агентстве", "start": 1}, {"title": "Фестивальные кейсы", "start": 10}, {"title": "FMCG", "start": 56}, {"title": "E-grocery", "start": 75}, {"title": "Non-food", "start": 123}];
+
+  var vimeoApi;
+  function withVimeoApi(cb) {
+    if (window.Vimeo) { cb(); return; }
+    if (!vimeoApi) {
+      vimeoApi = document.createElement('script');
+      vimeoApi.src = 'https://player.vimeo.com/api/player.js';
+      document.head.appendChild(vimeoApi);
+    }
+    vimeoApi.addEventListener('load', cb);
+  }
+
+  function playInline(btn) {
+    var section = btn.closest('.slide');
+    if (!section || section.querySelector('.slide-video')) return;
+
+    var iframe = document.createElement('iframe');
+    iframe.className = 'slide-video';
+    iframe.src = btn.getAttribute('data-embed');
+    iframe.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+    iframe.allowFullscreen = true;
+
+    // Vimeo letterboxes/pillarboxes a video whose native aspect ratio doesn't match our
+    // 16:9 slide. When we know the real aspect (baked in at build time), scale the iframe
+    // up and center it so the video content covers the full slide instead of showing bars.
+    var videoAspect = parseFloat(btn.getAttribute('data-aspect'));
+    if (videoAspect) {
+      var containerAspect = 16 / 9;
+      var scale = Math.max(containerAspect / videoAspect, videoAspect / containerAspect);
+      if (scale > 1.01 && scale <= 1.4) {
+        iframe.style.width = (scale * 100) + '%';
+        iframe.style.height = (scale * 100) + '%';
+        iframe.style.left = '50%';
+        iframe.style.top = '50%';
+        iframe.style.right = 'auto';
+        iframe.style.bottom = 'auto';
+        iframe.style.transform = 'translate(-50%, -50%)';
+      } else if (scale > 1.01) {
+        // too wide/narrow to crop safely: fit the iframe to the video so the bars are the
+        // slide's own black background, not the (white) empty canvas of the iframe.
+        iframe.style.left = '50%';
+        iframe.style.top = '50%';
+        iframe.style.right = 'auto';
+        iframe.style.bottom = 'auto';
+        iframe.style.transform = 'translate(-50%, -50%)';
+        if (videoAspect > containerAspect) {
+          iframe.style.height = (100 * containerAspect / videoAspect) + '%';
+        } else {
+          iframe.style.width = (100 * videoAspect / containerAspect) + '%';
+        }
+      }
+    }
+    section.style.background = '#000';
+    var slideImg = section.querySelector('img');
+    if (slideImg) slideImg.style.visibility = 'hidden';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'slide-close';
+    closeBtn.setAttribute('aria-label', 'Закрыть видео');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      iframe.remove();
+      closeBtn.remove();
+      section.style.background = '';
+      if (slideImg) slideImg.style.visibility = '';
+      section.querySelectorAll('.hotspot').forEach(function(h) { h.style.visibility = ''; });
+    });
+
+    section.querySelectorAll('.hotspot').forEach(function(h) { h.style.visibility = 'hidden'; });
+    section.appendChild(iframe);
+    section.appendChild(closeBtn);
+    if (/player\.vimeo\.com/.test(iframe.src)) {
+      withVimeoApi(function () {
+        try { new Vimeo.Player(iframe).on('ended', function () { closeBtn.click(); }); } catch (e) {}
+      });
+    }
+  }
+
+  document.querySelectorAll('.hotspot-video').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      playInline(btn);
+    });
+  });
+
+  // scroll progress
+  var fill = document.getElementById('topbarFill');
+  function onScroll() {
+    var h = document.documentElement;
+    var scrolled = h.scrollTop;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (scrolled / max) * 100 : 0;
+    fill.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', onScroll, {passive: true});
+  onScroll();
+
+  // active slide tracking via IntersectionObserver
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var chapterLinks = Array.prototype.slice.call(document.querySelectorAll('.chapter-link'));
+  var counterEl = document.getElementById('slideCounter');
+  var slidenav = document.getElementById('slidenav');
+  var prevBtn = document.getElementById('prevSlide');
+  var nextBtn = document.getElementById('nextSlide');
+  var currentIndex = 0;
+
+  function setActiveChapter(chapterIdx) {
+    chapterLinks.forEach(function(a) {
+      a.classList.toggle('active', parseInt(a.getAttribute('data-chapter-idx'), 10) === chapterIdx);
+    });
+  }
+
+  function updateCurrent(index) {
+    currentIndex = index;
+    var page = parseInt(slides[index].getAttribute('data-page'), 10);
+    counterEl.textContent = (index + 1) + ' / ' + slides.length;
+    setActiveChapter(parseInt(slides[index].getAttribute('data-chapter'), 10));
+    prevBtn.disabled = index <= 0;
+    nextBtn.disabled = index >= slides.length - 1;
+  }
+
+  var observer = new IntersectionObserver(function(entries) {
+    var best = null;
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
+      }
+    });
+    if (best) {
+      var idx = slides.indexOf(best.target);
+      if (idx !== -1) updateCurrent(idx);
+    }
+  }, { threshold: [0.25, 0.5, 0.75], rootMargin: '-64px 0px -20% 0px' });
+  slides.forEach(function(s) { observer.observe(s); });
+
+  function goTo(index) {
+    index = Math.max(0, Math.min(slides.length - 1, index));
+    slides[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  prevBtn.addEventListener('click', function() { goTo(currentIndex - 1); });
+  nextBtn.addEventListener('click', function() { goTo(currentIndex + 1); });
+
+  document.addEventListener('keydown', function(e) {
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); goTo(currentIndex + 1); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goTo(currentIndex - 1); }
+  });
+
+  var revealTimer = null;
+  window.addEventListener('scroll', function() {
+    slidenav.classList.add('visible');
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(function() { slidenav.classList.remove('visible'); }, 2200);
+  }, {passive: true});
+
+  updateCurrent(0);
+})();
+</script>
+
+</body>
+</html>
