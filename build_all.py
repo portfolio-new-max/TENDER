@@ -69,6 +69,8 @@ for src, n in ORDER:
         r = g['rect']
         style = f'left:{r.x0/1920*100:.4f}%;top:{r.y0/1080*100:.4f}%;width:{r.width/1920*100:.4f}%;height:{r.height/1080*100:.4f}%;'
         if kind == 'link':
+            if 'tutkovbudkov' in g['uri'].lower():
+                continue
             hot += (f'\n      <a class="hotspot hotspot-link" style="{style}" href="{g["uri"]}" target="_blank" '
                     f'rel="noopener noreferrer" aria-label="Открыть ссылку"></a>')
             continue
@@ -121,10 +123,12 @@ html = f'''<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Креатив и ИИ — Тутков/Будков</title>
-<meta name="description" content="Портфолио агентства Тутков/Будков: кейсы по отраслям и использование ИИ.">
+<title>Креатив и ИИ</title>
+<meta name="description" content="Кейсы по отраслям и использование ИИ.">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow, noarchive">
+<meta property="og:title" content="Креатив и ИИ">
+<meta property="og:description" content="Кейсы по отраслям и использование ИИ.">
 <link rel="icon" href="data:,">
 <style>{CSS}
   .chapternav {{ gap: 4px 20px; }}
